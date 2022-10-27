@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Country {
+  id          String       @id @default(cuid())
+  name        String
+  countryCode String
+  departments Department[]
+}
+
+model Department {
+  id                String  @id @default(cuid())
+  name              String
+  departmentCountry Country @relation(fields: [countryId], references: [id])
+  countryId         String
+  cities            City[]
+}
+
+model City {
+  id             String     @id @default(cuid())
+  name           String
+  cityDepartment Department @relation(fields: [departmentId], references: [id])
+  departmentId   String
+  users          User[]
+  addresses      Address[]
+  sellercities   Seller[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  userCity     City     @relation(fields: [cityId], references: [id])
+  cityId       String
+  name         String
+  lastName     String
+  documentType String
+  documentId   String
+  dateOfBirth  DateTime
+  email        String
+  gender       String
+  phoneNumber  String
+  client      Client?
+  seller      Seller?
+  roleUser     Role?
+}
+
+model Role{
+  id          String   @id @default(cuid())
+  roleUser    User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  isAdmin     Boolean
+}
+
+model Address {
+  id              String   @id @default(cuid())
+  addressCity     City     @relation(fields: [cityId], references: [id])
+  cityId          String
+  addressLine     String
+  additionalInfo  String
+  clientAddresses Client[]
+  orders          Order[]
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  clientAddress Address  @relation(fields: [addressId], references: [id])
+  addressId     String
+  clientUser    User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+  orders        Order[]
+  shoppingCart  ShoppingCart?
+  ratings       Rating[]
+}
+
+model Seller {
+  id          String    @id @default(cuid())
+  sellerUser  User      @relation(fields: [clientId], references: [id])
+  clientId    String    @unique
+  sellerName  String
+  logo        String
+  addressCity City      @relation(fields: [cityId], references: [id])
+  cityId      String
+  phoneNumber String
+  sellerEmail String
+  products    Product[]
+}
+
+model Category {
+  id         String            @id @default(cuid())
+  name       String
+  categories CategoryProduct[]
+}
+
+model Product {
+  id            String            @id @default(cuid())
+  productSeller Seller            @relation(fields: [sellerId], references: [id])
+  sellerId      String
+  name          String
+  brand         String
+  value         Decimal
+  description   String
+  stock         Int
+  categories    CategoryProduct[]
+  images        Image[]
+  details       OrderDetail[]
+  ratings       Rating[]
+  cartDetails    ShoppingCartDetails[]
+  thumbnail     String            @default("")
+}
+
+model CategoryProduct {
+  id               String   @id @default(cuid())
+  categoryCategory Category @relation(fields: [categoryId], references: [id])
+  categoryId       String
+  categoryProduct  Product  @relation(fields: [productId], references: [id])
+  productId        String
+}
+
+model Image {
+  id           String  @id @default(cuid())
+  imageProduct Product @relation(fields: [productId], references: [id])
+  productId    String
+  url          String
+  main         Boolean
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  orderClient    Client        @relation(fields: [clientId], references: [id])
+  clientId       String
+  orderAddress   Address       @relation(fields: [addressId], references: [id])
+  addressId      String
+  invoiceAddress String
+  shipmentDate   String
+  paymentMethod  String
+  deliveryStatus String
+  total          Decimal
+  trackNumber    String
+  details        OrderDetail[]
+}
+
+model OrderDetail {
+  id           String  @id @default(cuid())
+  detailOrder  Order   @relation(fields: [orderId], references: [id])
+  orderId      String
+  orderProduct Product @relation(fields: [productId], references: [id])
+  productId    String
+  value        Decimal
+  units        Int
+  subTotal     Decimal
+}
+
+model ShoppingCart {
+  id             String        @id @default(cuid())
+  cartClient     Client        @relation(fields: [clientId], references: [id])
+  clientId       String        @unique
+  total          Decimal
+  details        ShoppingCartDetails[]
+}
+
+model ShoppingCartDetails {
+  id                String  @id @default(cuid())
+  detailcart        ShoppingCart   @relation(fields: [shoppingCartId], references: [id])
+  shoppingCartId    String
+  cartProduct       Product @relation(fields: [productId], references: [id])
+  productId         String
+  value             Decimal
+  units             Int
+  subTotal          Decimal
+}
+
+model Rating {
+  id            String  @id @default(cuid())
+  ratingProduct Product @relation(fields: [productId], references: [id])
+  productId     String
+  ratingClient  Client  @relation(fields: [clientId], references: [id])
+  clientId      String
+  rate          Int
+  comment       String
+}
