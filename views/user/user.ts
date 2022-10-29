@@ -4,7 +4,7 @@ import express from "express";
 const prisma = new PrismaClient();
 
 const routeUser = express.Router();
-// create user route
+// create user routes
 routeUser.post("/user", async (req, res) => {
     const { name, lastName, documentType,documentNumber,birthDate,gender, email,phone,cityId } = req.body;
     const user = await prisma.user.create({
