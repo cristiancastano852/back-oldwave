@@ -17,6 +17,7 @@ routeShoppingCart.get("/cart/:id", async (req, res) => {
           select: {
             shoppingCart: {
               select: {
+                id: true,
                 total: true,
                 details: {
                   select: {
@@ -65,6 +66,53 @@ routeShoppingCart.post('/cart', async (req, res) => {
   
   res.json(post)
 })
+
+routeShoppingCart.patch('/cart/', async (req, res) => {
+  const { shoppingCartId, productId, value} = req.body
+  const product = await prisma.shoppingCartDetails.findMany({
+    where: {
+      productId: productId,
+      shoppingCartId: shoppingCartId,
+    },
+    select: {
+      id: true,
+      units: true,
+    },
+  })
+  const units = product[0].units + 1
+  //increase one units
+  if(value==1){
+    const units = product[0].units + 1
+    const products = await prisma.shoppingCartDetails.update({
+      where: {
+        id: product[0].id,
+      },
+      data: {
+        units: units,
+      },
+    })
+    res.json(products)
+    //decrease one units
+  }else if(value==-1){
+    const units = product[0].units - 1
+    const products = await prisma.shoppingCartDetails.update({
+      where: {
+        id: product[0].id,
+      },
+      data: {
+        units: units,
+      },
+    })
+    res.json(products)
+  }else if(value==0){
+    const products = await prisma.shoppingCartDetails.delete({
+      where: {
+        id: product[0].id,
+      },
+    })
+    res.json('se eliminó correctamente')
+  }
+  });
 
 
 export default routeShoppingCart;
