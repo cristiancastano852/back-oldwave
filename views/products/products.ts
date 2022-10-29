@@ -45,15 +45,6 @@ routeProducts.get("/products", async (req, res) => {
             },
           },
         },
-        images: {
-          where: {
-            main: true,
-          },
-          take: 1,
-          select: {
-            url: true,
-          },
-        },
         ratings: {
           select: {
             rate: true,
@@ -85,51 +76,76 @@ routeProducts.get("/products", async (req, res) => {
     },
     products: altProducts[1],
   });
+});
 
-  routeProducts.get("/products/:id", async (req, res) => {
-    const id: string = req.params.id as string;
-    let getDetails = await prisma.product.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        name: true,
-        brand: true,
-        value: true,
-        description: true,
-        productSeller: {
-          select: {
-            sellerName: true,
-            logo: true,
-            addressCity: {
-              select: {
-                name: true,
-              },
+routeProducts.get("/products/:id", async (req, res) => {
+  const id: string = req.params.id as string;
+  let getDetails = await prisma.product.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      name: true,
+      brand: true,
+      value: true,
+      description: true,
+      productSeller: {
+        select: {
+          sellerName: true,
+          logo: true,
+          addressCity: {
+            select: {
+              name: true,
             },
           },
         },
-        images: {
-          select: {
-            main: true,
-            url: true,
-          },
-        },
-        ratings: {
-          select: { rate: true },
+      },
+      images: {
+        select: {
+          main: true,
+          url: true,
         },
       },
-    });
-    getDetails = {
-      ...getDetails,
-      rating: getDetails
-        ? getDetails.ratings.reduce(
-            (acc: number, curr: { rate: number }) => acc + curr.rate,
-            0
-          ) / getDetails.ratings.length
-        : undefined,
-    } as any;
-    res.json(getDetails);
+      ratings: {
+        select: { rate: true },
+      },
+    },
   });
+  getDetails = {
+    ...getDetails,
+    rating: getDetails
+      ? getDetails.ratings.reduce(
+          (acc: number, curr: { rate: number }) => acc + curr.rate,
+          0
+        ) / getDetails.ratings.length
+      : undefined,
+  } as any;
+  res.json(getDetails);
+});
+
+routeProducts.post("/products", async (req, res) => {
+  console.log("post recived");
+
+  let productData = req.body;
+  const product = await prisma.product.create({
+    data: {
+      brand: productData.brand,
+      name: productData.name,
+      value: productData.value,
+      description: productData.description,
+      productSeller: {
+        connect: {
+          id: productData.sellerId,
+        },
+      },
+      stock: productData.stock,
+      images: {
+        create: productData.images,
+      },
+      thumbnail: productData.thumbnail,
+    },
+  });
+  res.json(product);
 });
 
 export default routeProducts;

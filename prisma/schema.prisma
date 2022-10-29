@@ -129,7 +129,7 @@ model Image {
   imageProduct Product @relation(fields: [productId], references: [id])
   productId    String
   url          String
-  main         Boolean
+  main         Boolean @default(false)
 }
 
 model Order {
