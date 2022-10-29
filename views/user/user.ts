@@ -4,7 +4,7 @@ import express from "express";
 const prisma = new PrismaClient();
 
 const routeUser = express.Router();
-// create user route
+// create user routes
 routeUser.post("/user", async (req, res) => {
     const { name, lastName, documentType,documentNumber,birthDate,gender, email,phone,cityId } = req.body;
     const user = await prisma.user.create({
@@ -39,7 +39,8 @@ routeUser.get("/user/:email", async (req, res) => {
     res.json(user);
 });
 
-routeUser.get("/user/:id", async (req, res) => {
+routeUser.patch("/user/:id", async (req, res) => {
+    console.log('entro al get')
     const id: string = req.params.id as string;
     let user = await prisma.user.findUnique({
         where: {
@@ -58,7 +59,7 @@ routeUser.get("/user/:id", async (req, res) => {
             cityId: true,
         },
     });
-
+    
     let getDetails = await prisma.user.findUnique({
       where: {
         id: id,
